@@ -12,4 +12,4 @@ django 2.2.1
 
 redis-server 3.2.12
 
-![]("https://wx2.sbimg.cn/2020/06/21/1.png")
+![](https://wx2.sbimg.cn/2020/06/21/1.png)
