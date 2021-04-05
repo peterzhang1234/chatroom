@@ -92,7 +92,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'chatroom',
-        'HOST':'127.0.0.1',
+        'HOST':'192.168.31.97',
         'PORT':3306,
         'USER':'root',
         'PASSWORD':'Deepin_001'
@@ -151,13 +151,13 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [('192.168.31.97', 6379)],
         },
     },
 }
 
-CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_BROKER_URL = 'redis://192.168.31.97:6379'
+CELERY_RESULT_BACKEND = 'redis://192.168.31.97:6379'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['application/json', 'pickle']
