@@ -99,17 +99,14 @@ class BaseDatabaseOperations:
         """
         raise NotImplementedError('subclasses of BaseDatabaseOperations may require a date_extract_sql() method')
 
-    def date_interval_sql(self, timedelta):
-        """
-        Implement the date interval functionality for expressions.
-        """
-        raise NotImplementedError('subclasses of BaseDatabaseOperations may require a date_interval_sql() method')
-
-    def date_trunc_sql(self, lookup_type, field_name):
+    def date_trunc_sql(self, lookup_type, field_name, tzname=None):
         """
         Given a lookup_type of 'year', 'month', or 'day', return the SQL that
-        truncates the given date field field_name to a date object with only
-        the given specificity.
+        truncates the given date or datetime field field_name to a date object
+        with only the given specificity.
+
+        If `tzname` is provided, the given value is truncated in a specific
+        timezone.
         """
         raise NotImplementedError('subclasses of BaseDatabaseOperations may require a date_trunc_sql() method.')
 
@@ -144,11 +141,14 @@ class BaseDatabaseOperations:
         """
         raise NotImplementedError('subclasses of BaseDatabaseOperations may require a datetime_trunc_sql() method')
 
-    def time_trunc_sql(self, lookup_type, field_name):
+    def time_trunc_sql(self, lookup_type, field_name, tzname=None):
         """
         Given a lookup_type of 'hour', 'minute' or 'second', return the SQL
-        that truncates the given time field field_name to a time object with
-        only the given specificity.
+        that truncates the given time or datetime field field_name to a time
+        object with only the given specificity.
+
+        If `tzname` is provided, the given value is truncated in a specific
+        timezone.
         """
         raise NotImplementedError('subclasses of BaseDatabaseOperations may require a time_trunc_sql() method')
 
@@ -200,11 +200,12 @@ class BaseDatabaseOperations:
         """
         return []
 
-    def for_update_sql(self, nowait=False, skip_locked=False, of=()):
+    def for_update_sql(self, nowait=False, skip_locked=False, of=(), no_key=False):
         """
         Return the FOR UPDATE SQL clause to lock rows for an update operation.
         """
-        return 'FOR UPDATE%s%s%s' % (
+        return 'FOR%s UPDATE%s%s%s' % (
+            ' NO KEY' if no_key else '',
             ' OF %s' % ', '.join(of) if of else '',
             ' NOWAIT' if nowait else '',
             ' SKIP LOCKED' if skip_locked else '',
@@ -338,10 +339,6 @@ class BaseDatabaseOperations:
         not quote the given name if it's already been quoted.
         """
         raise NotImplementedError('subclasses of BaseDatabaseOperations may require a quote_name() method')
-
-    def random_function_sql(self):
-        """Return an SQL expression that returns a random value."""
-        return 'RANDOM()'
 
     def regex_lookup(self, lookup_type):
         """

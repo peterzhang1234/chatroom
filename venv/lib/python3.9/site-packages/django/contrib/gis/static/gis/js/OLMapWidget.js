@@ -50,7 +50,7 @@ ol.inherits(GeometryTypeControl, ol.control.Control);
             default_lat: 0,
             default_lon: 0,
             default_zoom: 12,
-            is_collection: options.geom_name.indexOf('Multi') > -1 || options.geom_name.indexOf('Collection') > -1
+            is_collection: options.geom_name.includes('Multi') || options.geom_name.includes('Collection')
         };
 
         // Altering using user-provided options
@@ -133,7 +133,7 @@ ol.inherits(GeometryTypeControl, ol.control.Control);
 
         // Initialize the draw interaction
         let geomType = this.options.geom_name;
-        if (geomType === "Unknown" || geomType === "GeometryCollection") {
+        if (geomType === "Geometry" || geomType === "GeometryCollection") {
             // Default to Point, but create icons to switch type
             geomType = "Point";
             this.currentGeometryType = new GeometryTypeControl({widget: this, type: "Point", active: true});

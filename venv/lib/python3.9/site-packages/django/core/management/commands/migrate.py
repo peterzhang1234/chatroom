@@ -20,7 +20,7 @@ from django.utils.text import Truncator
 
 class Command(BaseCommand):
     help = "Updates database schema. Manages both apps with migrations and those without."
-    requires_system_checks = False
+    requires_system_checks = []
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -227,8 +227,9 @@ class Command(BaseCommand):
                 changes = autodetector.changes(graph=executor.loader.graph)
                 if changes:
                     self.stdout.write(self.style.NOTICE(
-                        "  Your models have changes that are not yet reflected "
-                        "in a migration, and so won't be applied."
+                        "  Your models in app(s): %s have changes that are not "
+                        "yet reflected in a migration, and so won't be "
+                        "applied." % ", ".join(repr(app) for app in sorted(changes))
                     ))
                     self.stdout.write(self.style.NOTICE(
                         "  Run 'manage.py makemigrations' to make new "

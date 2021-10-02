@@ -8,7 +8,7 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core import signals
 from django.core.exceptions import (
-    PermissionDenied, RequestDataTooBig, SuspiciousOperation,
+    BadRequest, PermissionDenied, RequestDataTooBig, SuspiciousOperation,
     TooManyFieldsSent,
 )
 from django.http import Http404
@@ -76,6 +76,17 @@ def response_for_exception(request, exc):
             exc_info=sys.exc_info(),
         )
 
+    elif isinstance(exc, BadRequest):
+        if settings.DEBUG:
+            response = debug.technical_500_response(request, *sys.exc_info(), status_code=400)
+        else:
+            response = get_exception_response(request, get_resolver(get_urlconf()), 400, exc)
+        log_response(
+            '%s: %s', str(exc), request.path,
+            response=response,
+            request=request,
+            exc_info=sys.exc_info(),
+        )
     elif isinstance(exc, SuspiciousOperation):
         if isinstance(exc, (RequestDataTooBig, TooManyFieldsSent)):
             # POST data can't be accessed again, otherwise the original
@@ -117,8 +128,8 @@ def response_for_exception(request, exc):
 
 def get_exception_response(request, resolver, status_code, exception):
     try:
-        callback, param_dict = resolver.resolve_error_handler(status_code)
-        response = callback(request, **{**param_dict, 'exception': exception})
+        callback = resolver.resolve_error_handler(status_code)
+        response = callback(request, exception=exception)
     except Exception:
         signals.got_request_exception.send(sender=None, request=request)
         response = handle_uncaught_exception(request, resolver, sys.exc_info())
@@ -138,5 +149,5 @@ def handle_uncaught_exception(request, resolver, exc_info):
         return debug.technical_500_response(request, *exc_info)
 
     # Return an HttpResponse that displays a friendly error message.
-    callback, param_dict = resolver.resolve_error_handler(500)
-    return callback(request, **param_dict)
+    callback = resolver.resolve_error_handler(500)
+    return callback(request)

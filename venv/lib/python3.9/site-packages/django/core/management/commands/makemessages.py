@@ -206,7 +206,7 @@ class Command(BaseCommand):
     translatable_file_class = TranslatableFile
     build_file_class = BuildFile
 
-    requires_system_checks = False
+    requires_system_checks = []
 
     msgmerge_options = ['-q', '--previous']
     msguniq_options = ['--to-code=utf-8']
@@ -383,6 +383,14 @@ class Command(BaseCommand):
 
             # Build po files for each selected locale
             for locale in locales:
+                if '-' in locale:
+                    self.stdout.write(
+                        'invalid locale %s, did you mean %s?' % (
+                            locale,
+                            locale.replace('-', '_'),
+                        ),
+                    )
+                    continue
                 if self.verbosity > 0:
                     self.stdout.write('processing locale %s' % locale)
                 for potfile in potfiles:

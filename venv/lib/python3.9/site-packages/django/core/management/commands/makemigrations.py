@@ -1,5 +1,6 @@
 import os
 import sys
+import warnings
 from itertools import takewhile
 
 from django.apps import apps
@@ -7,7 +8,7 @@ from django.conf import settings
 from django.core.management.base import (
     BaseCommand, CommandError, no_translations,
 )
-from django.db import DEFAULT_DB_ALIAS, connections, router
+from django.db import DEFAULT_DB_ALIAS, OperationalError, connections, router
 from django.db.migrations import Migration
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.loader import MigrationLoader
@@ -98,8 +99,15 @@ class Command(BaseCommand):
                     for app_label in consistency_check_labels
                     for model in apps.get_app_config(app_label).get_models()
             )):
-                loader.check_consistent_history(connection)
-
+                try:
+                    loader.check_consistent_history(connection)
+                except OperationalError as error:
+                    warnings.warn(
+                        "Got an error checking a consistent migration history "
+                        "performed for database connection '%s': %s"
+                        % (alias, error),
+                        RuntimeWarning,
+                    )
         # Before anything else, see if there's conflicting apps and drop out
         # hard if there are any and they don't want to merge
         conflicts = loader.detect_conflicts()
@@ -287,10 +295,17 @@ class Command(BaseCommand):
                 subclass = type("Migration", (Migration,), {
                     "dependencies": [(app_label, migration.name) for migration in merge_migrations],
                 })
-                migration_name = "%04i_%s" % (
-                    biggest_number + 1,
-                    self.migration_name or ("merge_%s" % get_migration_name_timestamp())
-                )
+                parts = ['%04i' % (biggest_number + 1)]
+                if self.migration_name:
+                    parts.append(self.migration_name)
+                else:
+                    parts.append('merge')
+                    leaf_names = '_'.join(sorted(migration.name for migration in merge_migrations))
+                    if len(leaf_names) > 47:
+                        parts.append(get_migration_name_timestamp())
+                    else:
+                        parts.append(leaf_names)
+                migration_name = '_'.join(parts)
                 new_migration = subclass(migration_name, app_label)
                 writer = MigrationWriter(new_migration, self.include_header)
 
