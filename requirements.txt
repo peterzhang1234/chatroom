@@ -16,7 +16,7 @@ chardet==3.0.4
 constantly==15.1.0
 cryptography==3.4.7
 daphne==2.5.0
-Django==3.2.7
+Django==3.2.12
 hiredis==2.0.0
 hyperlink==21.0.0
 idna==2.8
