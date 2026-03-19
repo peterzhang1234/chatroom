@@ -1,7 +1,7 @@
-from django.conf.urls import url
+from django.urls import path, re_path
 
 from . import views
 
 urlpatterns = [
-    url(r'^(?P<room_name>[^/]+)/$', views.room, name='room'),
+    re_path(r'^(?P<room_name>[^/]+)/$', views.room, name='room'),
 ]

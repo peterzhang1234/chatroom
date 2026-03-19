@@ -24,18 +24,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         import datetime
 
         currentDT = datetime.datetime.now()
-        datetime = currentDT.strftime("%Y-%m-%d %H:%M:%S")
+        datetime_str = currentDT.strftime("%Y-%m-%d %H:%M:%S")
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
                 'message': "用户 %s 加入 %s 房间" % (self.username, self.room_name,),
                 'username': "BOT",
-                'datetime': datetime
+                'datetime': datetime_str
             }
         )
 
-    async def disconnect(self, close_code):
+    async def disconnect(self, code):
         # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
@@ -43,14 +43,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     # Receive message from WebSocket
-    async def receive(self, text_data):
+    async def receive(self, text_data=None, bytes_data=None):
         import datetime
         from .tasks import execute
+        if text_data is None:
+            return
         text_data_json = json.loads(text_data)
         print(text_data)
         message = text_data_json['message']
         if len(message) == 0:
-            return False
+            return
 
         if "from_bot" in text_data_json:
             username = "BOT"
@@ -62,7 +64,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             parameter = message.split('=')[1]
             execute.s(command, parameter, self.room_group_name).apply_async(serializer="pickle")
         currentDT = datetime.datetime.now()
-        datetime = currentDT.strftime("%Y-%m-%d %H:%M:%S")
+        datetime_str = currentDT.strftime("%Y-%m-%d %H:%M:%S")
         # Send message to room group
         msg = Message()
         msg.message = message
@@ -78,7 +80,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'type': 'chat_message',
                 'message': message,
                 'username': username,
-                'datetime': datetime
+                'datetime': datetime_str
             }
         )
 

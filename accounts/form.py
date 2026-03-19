@@ -17,14 +17,14 @@ class Register_form(forms.Form):
         label="密码",
         max_length=20,
         min_length=6,
-        widget=forms.widgets.PasswordInput(render_value=True)
+        widget=forms.PasswordInput(render_value=True)
     )
 
     password2 = forms.CharField(
         label="确认密码",
         max_length=20,
         min_length=6,
-        widget=forms.widgets.PasswordInput(render_value=True)
+        widget=forms.PasswordInput(render_value=True)
     )
 
     email = forms.EmailField(
@@ -44,6 +44,9 @@ class Register_form(forms.Form):
 
     def clean_username(self):
         username = self.cleaned_data.get("username")
+        if not username:
+            self.add_error("username", "不能为空!")
+            return
         ret = re.search(r'^[0-9A-Za-z]{6,20}$',username)
         if ret:
             if User.objects.filter(username=username):

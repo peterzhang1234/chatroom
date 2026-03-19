@@ -10,10 +10,12 @@ import asyncio
 @shared_task
 def execute(command, parameter, room_group_name):
     if command == '/stock':
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         loop.run_until_complete(sendData(stock(parameter), "BOT", room_group_name))
         return True
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     loop.run_until_complete(sendData("I do not understand that parameter", "BOT", room_group_name))
     return True
 
@@ -24,13 +26,13 @@ async def sendData(message, from_, room_group_name):
     channel_layer = get_channel_layer()
     import datetime
     currentDT = datetime.datetime.now()
-    datetime = currentDT.strftime("%Y-%m-%d %H:%M:%S")
+    datetime_str = currentDT.strftime("%Y-%m-%d %H:%M:%S")
     await channel_layer.group_send(
         room_group_name,
         {
             'type': 'chat_message',
             'username': from_,
-            'datetime': datetime,
+            'datetime': datetime_str,
             'message': message
         }
     )
