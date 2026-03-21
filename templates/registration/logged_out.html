@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}已注销 - WebSocket 聊天室{% endblock %}
+
+{% block content %}
+<div class="card-form">
+  <div class="card shadow-sm">
+    <div class="card-body p-4 text-center">
+      <h4 class="mb-3">您已成功注销</h4>
+      <p class="text-muted mb-3">感谢使用 WebSocket 聊天室</p>
+      <a href="{% url 'login' %}" class="btn btn-primary">重新登录</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
